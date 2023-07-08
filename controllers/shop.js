@@ -30,6 +30,7 @@ exports.postCart = (req, res, next) => {
   });
   res.redirect("/cart");
 };
+
 exports.getIndex = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render("shop/index", {

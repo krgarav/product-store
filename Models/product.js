@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const p = path.join(
   path.dirname(process.mainModule.filename),
-  'data',
-  'products.json'
+  "data",
+  "products.json"
 );
 
-const getProductsFromFile = cb => {
+const getProductsFromFile = (cb) => {
   fs.readFile(p, (err, fileContent) => {
     if (err) {
       cb([]);
@@ -18,7 +18,8 @@ const getProductsFromFile = cb => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, description, price) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
@@ -26,25 +27,45 @@ module.exports = class Product {
   }
 
   save() {
-    this.id=Math.random().toString();
-    getProductsFromFile(products => {
-      products.push(this);
-      fs.writeFile(p, JSON.stringify(products), err => {
-        console.log(err);
-      });
+    getProductsFromFile((products) => {
+      if (this.id) {
+        const existingProductIndex = products.findIndex(
+          (prod) => prod.id === this.id
+        );
+        const updatedProduct = [...products];
+        updatedProduct[existingProductIndex] = this;
+        fs.writeFile(p, JSON.stringify(updatedProduct), (err) => {
+          console.log(err);
+        });
+      } else {
+        this.id = Math.random().toString();
+        products.push(this);
+        fs.writeFile(p, JSON.stringify(products), (err) => {
+          console.log(err);
+        });
+      }
     });
+  }
+
+ static delete(productid){
+    getProductsFromFile((products)=>{
+      const filteredProduct = products.filter(prod=>prod.id!==productid);
+      fs.writeFile(p,JSON.stringify(filteredProduct),(err)=>{
+        console.log(err);
+      })
+    });
+
   }
 
   static fetchAll(cb) {
     getProductsFromFile(cb);
   }
 
-  static getProduct(id,cb){
-    getProductsFromFile(products=>{
-      const product=products.find(p=>p.id===id);
-     
+  static getProduct(id, cb) {
+    getProductsFromFile((products) => {
+      const product = products.find((p) => p.id === id);
+
       cb(product);
     });
-
   }
 };
